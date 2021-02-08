@@ -119,11 +119,14 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(i2c
-    src/i2c.cpp
+add_library(i2c src/i2c.cpp
 )
+add_library(serial src/serial.cpp)
+
 
 add_executable(motor_driver src/motor_driver.cpp)
+add_executable(main_serial src/main_serial.cpp)
+
 
 
 add_dependencies(i2c ${i2c_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -131,8 +134,14 @@ add_dependencies(motor_driver ${motor_driver_EXPORTED_TARGETS} ${catkin_EXPORTED
 
 
 target_link_libraries(motor_driver
-   ${catkin_LIBRARIES} i2c
+    i2c ${catkin_LIBRARIES}
 )
+
+target_link_libraries(main_serial
+    serial ${catkin_LIBRARIES}
+)
+
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
