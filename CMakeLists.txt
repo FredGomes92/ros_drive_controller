@@ -8,7 +8,9 @@ project(ros_drive_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  controller_manager
   roscpp
+  rospy
 )
 
 ## System dependencies are found with CMake's conventions
@@ -101,10 +103,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES ros_drive_controller
-    CATKIN_DEPENDS roscpp
-    DEPENDS system_lib
+#  INCLUDE_DIRS include
+#  LIBRARIES ros_drive_controller
+#  CATKIN_DEPENDS controller_manager roscpp rospy
+#  DEPENDS system_lib
 )
 
 ###########
@@ -119,14 +121,10 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(i2c src/i2c.cpp
-)
-add_library(serial src/serial.cpp)
-
+add_library(i2c src/i2c.cpp)
 
 add_executable(motor_driver src/motor_driver.cpp)
-add_executable(main_serial src/main_serial.cpp)
-
+add_executable(my_bot_hw_interface src/robot_hw_interface_node.cpp)
 
 
 add_dependencies(i2c ${i2c_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -137,16 +135,9 @@ target_link_libraries(motor_driver
     i2c ${catkin_LIBRARIES}
 )
 
-target_link_libraries(main_serial
-    serial ${catkin_LIBRARIES}
+target_link_libraries(my_bot_hw_interface
+    i2c ${catkin_LIBRARIES}
 )
-
-
-
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
