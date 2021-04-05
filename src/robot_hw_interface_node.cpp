@@ -5,7 +5,7 @@ MyRobotHWInterface::MyRobotHWInterface(ros::NodeHandle &nh) : nh_(nh)
     init();
 
     controller_manager_.reset(new controller_manager::ControllerManager(this, nh_));
-    loop_hz_ = 20;
+    loop_hz_ = 5;
 
     ros::Duration update_freq = ros::Duration(1.0/loop_hz_);
     async_time = nh_.createTimer(update_freq, &MyRobotHWInterface::update, this);
@@ -66,9 +66,10 @@ void MyRobotHWInterface::read()
 
     joint_velocity_ = angles::from_degrees(joint_velocity);
 
+    double joint_position = (double)((buff[2] >> 8) | buff[3]);
     joint_position_ = angles::from_degrees((double)((buff[2] >> 8) | buff[3]));
 
-    ROS_INFO("Vel: %f, Pos: %f", joint_velocity_, joint_position_);
+    ROS_INFO("Vel (rad): %f, (deg): %f,  Pos (rad): %f, Pos (deg): %f", joint_velocity_, joint_velocity,  joint_position_, joint_position);
     ROS_INFO("Buff[0]: %d, Buff[1]: %d", buff[0], buff[1]);
 
     ROS_INFO ("Joint effort command: %f", joint_effort_command_);
@@ -90,7 +91,7 @@ void MyRobotHWInterface::write(ros::Duration elapsed_time)
 
     uint8_t buff[4];
 
-    int tmp = (int)angles::to_degrees(joint_effort_command_);
+    int tmp = (int)(joint_effort_command_*100);
 
     buff[0] = abs(tmp) >> 8; // MSB
     buff[1] = abs(tmp); // LSB
@@ -103,10 +104,12 @@ void MyRobotHWInterface::write(ros::Duration elapsed_time)
         buff[0] = buff[0] | 0b00000000;
 
     if (motor_prev_cmd != joint_effort_command_)
+    {
+        motor_prev_cmd = joint_effort_command_;
+        my_motor.writeData(buff, 4);
+    }
 
-    my_motor.writeData(buff, 4);
-
-    ROS_INFO("PWM Cmd: %.2f",tmp);
+    ROS_INFO("PWM Cmd: %.2f",joint_effort_command_);
     //ROS_INFO("tmp: %d , Buff[0]: %d, buff[1]: %d", tmp, buff[0], buff[1]);
 }
 
